@@ -32,11 +32,11 @@
 
 | Field | Your Answer |
 |-------|-------------|
-| **Full Name** | [Write your full name here] |
-| **Student ID** | [Write your student ID here] |
-| **University Email** | [yourid]@std.psau.edu.sa |
-| **GitHub Username** | [your-github-username] |
-| **Repository Link** | [Paste your repository link here] |
+| **Full Name** | Sedra Firas Arwani |
+| **Student ID** | 445052829 |
+| **University Email** | 445052829@std.psau.edu.sa |
+| **GitHub Username** | SedraArwani |
+| **Repository Link** | https://github.com/SedraArwani/OS-Assignment3-Sedra-Arwany |
  
 ---
 
@@ -132,17 +132,27 @@
 
 ## Your Development Log
 
-### Entry 1 - [Date and Time]
+### Entry 1 - 10 Nov 2026 6:13PM
 **What I did**:
-
+- Set up the assignment.
 **Details**:
-
+- I forked the starter repository
+  makopt/OS-Assignment3-Starter-481, renamed my fork to
+  OS-Assignment3-Sedra-Arwany, kept it public, and cloned it into VS Code.
+  I then set my student ID (445052829) in SchedulerSimulationSync.java
+  (line 304) and committed it with the message
+  "Set my student ID: 445052829".
 **Challenges**:
-
+- When I clicked "Sync Changes", VS Code showed a message saying
+  I did not have permission to push to my own repository and offered to create
+  a new fork.
 **Solution**:
-
+-  I cancelled the dialog instead of creating another fork. The
+  problem was that VS Code was not signed in to my GitHub account, so I signed
+  in again with my own account and the push worked. I then checked on
+  github.com that the commit appeared.
 **Time spent**:
-
+1 hour
 ---
 
 ### Entry 2 - [Date and Time]
