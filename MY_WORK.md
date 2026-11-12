@@ -155,17 +155,29 @@
 1 hour
 ---
 
-### Entry 2 - [Date and Time]
+### Entry 2 - 12 Nov 2026 6:13PM
 **What I did**:
-
+-  I ran the original starter code three times without changing anything, to see the race conditions before fixing them.
 **Details**:
-
+I also read the code to find the shared data: the ready queue (list and map) and
+  the three counters in SharedStats.
+- Results: Runs 1 and 3 failed the verification. Process P2 was lost
+  (its waiting and turnaround time stayed 0). Context switches were 33
+  instead of 35, completed processes were 15 instead of 16, and total
+  service time was 106263 instead of 111826. The missing 5563 ms is exactly
+  the burst time of P2. The busy-waiting polls were 956 and 1063 instead
+  of 0. Run 2 passed by luck, which shows that a race condition does not
+  appear on every run.
 **Challenges**:
-
+- Understanding why P2 disappeared. I found that poll()
+  reads the head of the queue and removes it in two separate steps, so two
+  CPUs can read the same head and one of them then removes a different
+  process.
 **Solution**:
-
+-  I saved the three outputs in text files to use them as
+  evidence for the questions and the video.
 **Time spent**:
-
+15 minutes
 ---
 
 ### Entry 3 - [Date and Time]
