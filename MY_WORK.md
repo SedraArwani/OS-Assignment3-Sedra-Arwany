@@ -155,7 +155,7 @@
 1 hour
 ---
 
-### Entry 2 - 12 Nov 2026 6:13PM
+### Entry 2 - 12 Nov 2026 2:00PM
 **What I did**:
 -  I ran the original starter code three times without changing anything, to see the race conditions before fixing them.
 **Details**:
@@ -180,17 +180,35 @@ I also read the code to find the shared data: the ready queue (list and map) and
 15 minutes
 ---
 
-### Entry 3 - [Date and Time]
+### Entry 3 - 12 Nov 2026 2:15PM
 **What I did**:
+Feature 1 (Ready Queue Lock).
 
 **Details**:
+- I added a
+  ReentrantLock (queueLock) to ReadyQueue class and wrapped every access
+  to shared list and map in lock() /try/finally/unlock(): add(),
+  poll(), processOf() and snapshot(). I used one lock for both list and map
+  because they are always modified together. I kept the println in add()
+  outside the lock because it does not touch the shared data.
+- Results: I ran the program 5 times. No process was lost anymore
+  (all 16 processes completed in every run, and P2 now has real waiting and
+  turnaround times). The busy-waiting polls dropped from about 1000 in the
+  starter to between 9 and 22. The verification still showed mismatches in
+  context switches (32 to 34 instead of 35) and sometimes in total service
+  time, which is expected because those counters are only fixed in Feature 2.
 
 **Challenges**:
+-  Understanding why lock must cover both read of the
+  head and its removal in poll(): if the lock only protected one of the two
+  steps, two CPUs could still read the same head.
 
 **Solution**:
-
+- I put whole body of poll() inside one critical section
+  and used finally so the lock is always released, even when the method
+  returns early on an empty queue.
 **Time spent**:
-
+30 minutes
 ---
 
 ### Entry 4 - [Date and Time]
