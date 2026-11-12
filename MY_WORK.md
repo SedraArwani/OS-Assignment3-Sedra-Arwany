@@ -275,13 +275,17 @@ about 1 hour
 
 > 💡 **TIP:** Fill this in **last**, after all entries are written.
 
-**Total time spent on assignment**: [X hours]
+**Total time spent on assignment**: [7 hours]
 
-**Most challenging part**:
+**Most challenging part**: Understanding why the starter lost process P2.
+The wrong numbers looked random at first, but then I saw that missing service time (5563 ms) was exactly the burst time of P2, and I understood two CPUs had read the same head of queue in poll(). Making the CPUs stop cleanly in Feature 3 was also hard, because CPUs would wait forever on acquire() when the queue was empty.
 
-**Most interesting learning**:
+**Most interesting learning**: A race condition does not fail on every run.
+My second starter run passed by luck, but runs 1 and 3 failed, so one good
+run does not prove the code is correct. I liked seeing the busy-waiting
+polls go from 956 to 0 after using the semaphore
 
-**What I would do differently next time**:
+**What I would do differently next time**: I would spread the work over more days.
 
 ---
 
@@ -454,19 +458,14 @@ After Feature 2 (one lock per counter), the three values were correct in all
 **Your Answer:** *(3-5 sentences)*
 
 I protected the ready queue (list and map) with one lock, queueLock, because
-they change together: poll() must read the head and remove it as one step. For
-the statistics I used one lock per variable, because the three counters are
-independent and one update does not need to block the others, so the CPUs wait
-less. The trade-off is that one lock is simpler, but it makes the CPUs wait for
-each other for no reason. The queue has a separate lock because poll() is
-slower (it contains RaceWindow.pause()), and it should not delay the counters.
-Mutual exclusion is guaranteed because only the lock owner can enter, and
-finally always unlocks. A default ReentrantLock is not fair, so bounded waiting
-is not strictly guaranteed, but my runs always finished
+they change together and poll() must read the head and remove it as one step.
+For the statistics I used one lock per variable, because the three counters
+are independent, so updating one does not block the others; one lock would be
+simpler but would make the CPUs wait for each other for no reason. The queue
+has a different lock because poll() is slower (it contains RaceWindow.pause()) and it should not delay the counters. Mutual exclusion holds because only the lock owner can enter, and finally always releases it, and progress holds because nobody waits when the lock is free. A default ReentrantLock is not fair, so bounded waiting is not strictly guaranteed, but all my runs finished
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
-| [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
 | poll(), add(), processOf(), snapshot() | queueLock | shared list and map |
 | incrementContextSwitch() + getter | contextSwitchLock | read-modify-write |
 | incrementCompletedProcess() + getter | completedLock | read-modify-write |
@@ -531,33 +530,33 @@ the semaphore first, then take the mutex (this breaks hold and wait)
 > ⚠️ **WARNING:** Go through every line. Blackboard does not accept submissions after the deadline, which is **November 14, 2026**.
 
 **Repository**
-- [ ] Repository is **PUBLIC** (Settings → Danger Zone → Visibility)
-- [ ] Repository is renamed to `OS-Assignment3-YourFirstName-YourLastName`
-- [ ] GitHub account uses the university email (`@std.psau.edu.sa`)
+- ✅ Repository is **PUBLIC** (Settings → Danger Zone → Visibility)
+- ✅ Repository is renamed to `OS-Assignment3-YourFirstName-YourLastName`
+- ✅ GitHub account uses the university email (`@std.psau.edu.sa`)
 
 **Code**
-- [ ] Student ID is set in `SchedulerSimulationSync.java` (line 304)
-- [ ] My code is based **only** on the starter of this repository (nothing copied from previous assignments)
-- [ ] Code compiles and runs with no errors, and terminates by itself (no `⛔ WATCHDOG`)
-- [ ] Feature 1 (ready queue lock), Feature 2 (statistics locks) and Feature 3 (semaphore, no busy waiting) all work
-- [ ] **The four verification lines are ✔ in 5 consecutive runs**
-- [ ] Every lock is released in a `finally` block
-- [ ] `RaceWindow`, `Config`, the verification block and the watchdog are **unchanged**
-- [ ] Each feature has clear comments
+- ✅ Student ID is set in `SchedulerSimulationSync.java` (line 304)
+- ✅ My code is based **only** on the starter of this repository (nothing copied from previous assignments)
+- ✅ Code compiles and runs with no errors, and terminates by itself (no `⛔ WATCHDOG`)
+- ✅ Feature 1 (ready queue lock), Feature 2 (statistics locks) and Feature 3 (semaphore, no busy waiting) all work
+- ✅ **The four verification lines are ✔ in 5 consecutive runs**
+- ✅ Every lock is released in a `finally` block
+- ✅ `RaceWindow`, `Config`, the verification block and the watchdog are **unchanged**
+- ✅ Each feature has clear comments
 
 **Commits**
-- [ ] **At least 4 meaningful commits, ideally 7 or more**
-- [ ] **One commit per feature**
-- [ ] Commits are spread over **different dates** (not all in the last hour)
-- [ ] Everything is **pushed** to GitHub
+- ✅ **At least 4 meaningful commits, ideally 7 or more**
+- ✅ **One commit per feature**
+- ✅ Commits are spread over **different dates** (not all in the last hour)
+- ✅ Everything is **pushed** to GitHub
 
 **This file (`MY_WORK.md`)**
-- [ ] Full name and student ID filled in at the top
-- [ ] Development log has **5+ entries** on different dates
-- [ ] Reflection: 4 questions, 5-7 sentences each
-- [ ] Technical answers: 4 questions, 3-5 sentences each, with examples from **your** output (starter output **and** final output pasted in Question 1)
-- [ ] No `[...]` placeholders left
-- [ ] No section headers deleted
+- ✅ Full name and student ID filled in at the top
+- ✅ Development log has **5+ entries** on different dates
+- ✅ Reflection: 4 questions, 5-7 sentences each
+- ✅ Technical answers: 4 questions, 3-5 sentences each, with examples from **your** output (starter output **and** final output pasted in Question 1)
+- ✅ No `[...]` placeholders left
+- ✅ No section headers deleted
 
 **Video**
 - [ ] 2-3 minutes long, named `StudentID_Assignment3_Demo.mp4`
