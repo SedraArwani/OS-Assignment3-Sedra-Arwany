@@ -231,17 +231,31 @@ Feature 2 (Statistics Locks)
 
 ---
 
-### Entry 5 - [Date and Time]
+### Entry 5 - 12 Nov 2026 3:44PM
 **What I did**:
+Feature 3 (Counting Semaphore)
 
 **Details**:
+- I added a Semaphore
+  (processesAvailable, initial value 0) to ReadyQueue. add() calls
+  release() after the process is really in the list, and each CPU now calls
+  acquire() (through awaitProcess()) instead of polling the queue and
+  sleeping for 20 ms. For the clean shutdown, the CPU that finishes the last
+  process calls release(totalCPUs) so every CPU blocked on the semaphore
+  wakes up, sees that all processes are completed and terminates
+- Results: I ran the program 5 times. All verification lines were
+  correct in every run (35 context switches, 16 completed processes, 111826
+  ms of service time, 0 busy-waiting polls) and the program always
+  terminated without the watchdog message
 
 **Challenges**:
+- Making the CPUs terminate. At first I only thought about the case where a process is available, but at the end the queue is empty and the CPUs would wait forever on acquire()
 
 **Solution**:
+- Releasing one permit per CPU when the last process completes, and checking the completed counter right after acquire().
 
 **Time spent**:
-
+about 1 hour
 ---
 
 ### Entry 6 - [Optional - Date and Time]
