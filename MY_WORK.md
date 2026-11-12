@@ -211,16 +211,23 @@ Feature 1 (Ready Queue Lock).
 30 minutes
 ---
 
-### Entry 4 - [Date and Time]
+### Entry 4 - 12 Nov 2026 2:20PM
 **What I did**:
+Feature 2 (Statistics Locks)
 
 **Details**:
+-  I declared three ReentrantLocks in SharedStats, one per shared variable (contextSwitchLock, completedLock, serviceTimeLock). I used lock() / try / finally / unlock() in the three update methods and also in the three getters, because a read in the middle of an update is not safe either
+- Lock granularity: I chose one lock per variable because the three counters are independent: no operation needs to update two of them together. With a single lock, a CPU updating the service time would block another CPU that only wants to increment the context switch counter, which adds waiting for no reason
+- Results: I ran the program 5 times. The first three verification lines (context switches 35, completed 16, service time 111826) were correct in all 5 runs. Only the busy-waiting line still failed (between 12 and 26 polls instead of 0), which is the goal of Feature 3
 
 **Challenges**:
+-  Finding why the totals were wrong even though no process was lost: the increments (read, pause, write) of two CPUs overlapped, so one update was lost
 
 **Solution**:
+- Putting the whole read-modify-write sequence inside the lock of its own variable.
 
 **Time spent**:
+30 minutes
 
 ---
 
