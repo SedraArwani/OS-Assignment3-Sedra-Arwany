@@ -301,7 +301,14 @@ about 1 hour
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+I learned that a race condition is not a bug that shows up every time. In my
+starter, the first run lost process P2, the second run passed, and the third
+run failed again, so one good run does not prove the code is correct. I
+understood that count=count+1 is really three steps (read, add, write),
+and if two CPUs mix these steps one update is lost. A ReentrantLock with
+try/finally fixed this because only one thread can be inside the critical
+section, and finally always releases the lock. I also learned that a counting
+semaphore lets a CPU sleep instead of checking the queue again and again.
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -309,7 +316,7 @@ about 1 hour
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+Understanding why the starter lost process P2. At first the wrong numbers looked random: 33 context switches instead of 35, and 15 completed processes instead of 16. Then I noticed that the missing service time was 5563 ms, which is exactly the burst time of P2. That helped me understand that two CPUs read the same head in poll() and one of them removed a different process. It was hard because the bug does not appear in every run, so I could not just run it once and see the problem. I also had a small problem with Git at the beginning, because VS Code was not signed in to my GitHub account and could not push.
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -317,7 +324,14 @@ about 1 hour
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+I worked on one feature at a time and ran the program 5 times after each one.
+Comparing the numbers between runs helped me see what was fixed: after
+Feature 1 no process was lost, after Feature 2 the three counters were
+correct, and after Feature 3 the busy-waiting polls became 0. I also read the
+README and the comments in the code to understand what each TODO wanted. For
+the Git problem, I signed in to my GitHub account again in VS Code and then
+the push worked. I made a commit after each feature so I could go back if
+something broke
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -325,7 +339,16 @@ about 1 hour
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+A bank transfer is a good example: two transactions that change the same
+balance at the same time can lose an update, like my counters did, so the
+balance needs a lock. Ticket or seat booking is similar: two people must not
+buy the same seat, so checking and reserving the seat should be one critical
+section. A print queue is like my ready queue: many users add jobs and the
+printer takes them one by one, and a semaphore can count the waiting jobs so
+the printer does not keep checking an empty queue. A visitor counter on a
+website also needs protection, because many users can increase it at the same
+time. In all these cases the idea is the same: shared data, a critical
+section, and a lock or a semaphore
 
 ### Optional: What would you like to learn more about?
 
