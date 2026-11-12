@@ -359,20 +359,68 @@ about 1 hour
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In my original starter run (student ID 445052829),  verification showed
+context switches 33 instead of 35, completed processes 15 instead of 16,
+total service time 106263 instead of 111826, and 956 busy-waiting polls.
+A clear example of a lost update appeared after I protected only the ready
+queue: context switches was 34 instead of 35 while  other counters were
+correct. This happens because incrementContextSwitch() reads counter,
+waits in RaceWindow.pause(), and then writes tmp + 1: for example CPU-1
+reads 12, CPU-2 reads 12 during the pause, both write 13, so one increment
+is lost. On a real machine the same bug can happen without RaceWindow
+because count++ is really three steps (read, add, write) and a thread can be
+preempted between them, but window is only nanoseconds wide, so the
+failure is rare and random and therefore hard to detect and reproduce
 
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected 35       observed 33       ? MISMATCH
+  Completed processes                    expected 16       observed 15       ? MISMATCH
+  Total service time (ms)                expected 111826   observed 106263   ? MISMATCH
+  Busy-waiting polls (must be 0)         expected 0        observed 956      ? MISMATCH
+  ? At least one check failed (see the ? lines above): a race condition or busy waiting is still present.
+
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected 35       observed 35       ?
+  Completed processes                    expected 16       observed 16       ?
+  Total service time (ms)                expected 111826   observed 111826   ?
+  Busy-waiting polls (must be 0)         expected 0        observed 0        ?
+  ? All shared values are consistent.
+
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+Evidence from my own runs (student ID 445052829):
+
+1) Starter, run 1: context switches 33 instead of 35, completed 15 instead of
+   16, total service time 106263 instead of 111826. The missing service time
+   is 111826 - 106263 = 5563 ms, which is exactly the burst time of P2 (it
+   needs 2 quanta, so 2 context switches are also missing). So here a whole
+   process was lost in poll(): CPU-1 and CPU-2 both read the same head, both
+   paused in RaceWindow.pause(), and one removeFirst() then removed a
+   different process than the one that had been read.
+
+2) After protecting only the ready queue (Feature 1), no process was lost
+   anymore, but the counters were still wrong. In run 3, context switches
+   was 34 instead of 35 while other counters were correct. This is a
+   lost update on contextSwitchCount. In run 1 the service time was 107826,
+   exactly 4000 ms (one quantum) less than 111826, so one addition to
+   totalServiceTime was lost.
+
+Timeline of one lost update (N is the value of the counter at that moment):
+- CPU-1's process reads tmp = N
+- CPU-2's process reads tmp = N (during RaceWindow.pause())
+- CPU-1's process writes N + 1
+- CPU-2's process writes N + 1
+Two increments happened but the counter only grew by 1, so the final value
+was one less than expected (34 instead of 35 in run 3)
+After Feature 2 (one lock per counter), the three values were correct in all
+5 runs, and after Feature 3 the busy-waiting polls went from 956 to 0.
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -382,12 +430,25 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+I protected the ready queue (list and map) with one lock, queueLock, because
+they change together: poll() must read the head and remove it as one step. For
+the statistics I used one lock per variable, because the three counters are
+independent and one update does not need to block the others, so the CPUs wait
+less. The trade-off is that one lock is simpler, but it makes the CPUs wait for
+each other for no reason. The queue has a separate lock because poll() is
+slower (it contains RaceWindow.pause()), and it should not delay the counters.
+Mutual exclusion is guaranteed because only the lock owner can enter, and
+finally always unlocks. A default ReentrantLock is not fair, so bounded waiting
+is not strictly guaranteed, but my runs always finished
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
 | [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
-| [...] | [...] | [...] |
+| poll(), add(), processOf(), snapshot() | queueLock | shared list and map |
+| incrementContextSwitch() + getter | contextSwitchLock | read-modify-write |
+| incrementCompletedProcess() + getter | completedLock | read-modify-write |
+| addServiceTime() + getter | serviceTimeLock | read-modify-write |
+
 
 ## Question 3: Busy Waiting vs Semaphore
 
@@ -397,7 +458,14 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In starter, a CPU that found the queue empty slept 20 ms and polled again,
+which wastes CPU time: my starter runs had 956 and 1063 polls. The semaphore
+value is the number of processes waiting in the ready queue. Its initial value
+is 0 because the queue is empty at the beginning, and it becomes 16 after the
+16 initial add() calls. In my final version a CPU with no process is blocked in
+acquire(), and the polls were 0 in all 5 runs. The last CPU calls
+release(totalCPUs) so the blocked CPUs wake up and stop; without it they would
+wait forever and the watchdog would trigger.
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -408,24 +476,30 @@ Verification block of **my final version**:
 **Your Answer:** *(3-5 sentences)*
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+Producer-Consumer. Consumers: the CPUs. Producers: the main thread and the
+CPUs (when they re-add an unfinished process)
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+empty = K, full = 0, mutex = 1
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+The producer does wait(mutex) before wait(empty) while the queue is full, and
+the consumer cannot get the mutex to make a free slot. Prevention: wait on
+the semaphore first, then take the mutex (this breaks hold and wait)
 
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1. A race condition happens when threads read, modify and write shared data
+   without protection (my starter lost process P2 and some counter updates)
+2. A mutex lock (ReentrantLock with try/finally) gives mutual exclusion, and
+   one lock per independent variable reduces waiting.
+3. counting semaphore removes busy waiting (956 polls became 0), but the
+   CPUs need a clean shutdown with release(totalCPUs).
 
 **Concepts I need to study more:**
-1.
-2.
+1. Deadlock prevention with several locks or semaphores.
+2. Fair locks and bounded waiting and their cost.
 
 ---
 
